@@ -224,9 +224,9 @@ func (s *Server) postHandler(w http.ResponseWriter, r *http.Request) {
 	token := Encode(10000000 + int64(rand.Intn(1000000000)))
 
 	w.Header().Set("Content-Type", "text/plain")
-
+	fheadersc := 0
 	for _, fheaders := range r.MultipartForm.File {
-		for _, fheader := range fheaders {
+		for fheaderc, fheader := range fheaders {
 			filename := sanitize(fheader.Filename)
 			contentType := fheader.Header.Get("Content-Type")
 
@@ -300,8 +300,13 @@ func (s *Server) postHandler(w http.ResponseWriter, r *http.Request) {
 			}
 
 			relativeURL, _ := url.Parse(path.Join(token, filename))
-			fmt.Fprintln(w, getURL(r).ResolveReference(relativeURL).String())
+			if fheaderc == len(fheaders)-1 && fheadersc == len(r.MultipartForm.File)-1 {
+				fmt.Fprint(w, getURL(r).ResolveReference(relativeURL).String())
+			} else {
+				fmt.Fprintln(w, getURL(r).ResolveReference(relativeURL).String())
+			}
 		}
+		fheadersc++
 	}
 }
 
